@@ -1,6 +1,5 @@
 import express from 'express';
 import { Express } from 'express';
-
 import bodyParser from 'body-parser';
 
 import router from './config/bullBoardConfig';
@@ -8,6 +7,7 @@ import sampleQueueProducer from './producers/sampleQueueProducer';
 import serverConfig from './config/serverConfig';
 import sampleWorker from './workers/sampleWorker';
 import apiRouter from './routes/index';
+import runPython from './containers/runPythonDocker';
 const app: Express = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -37,4 +37,6 @@ app.listen(serverConfig.PORT, () => {
     2
   );
   sampleWorker('sampleQueue');
+  const code = `print('Hello World')`;
+  runPython(code);
 });
