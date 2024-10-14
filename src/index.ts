@@ -1,13 +1,19 @@
 import express from 'express';
 import { Express } from 'express';
 
+import bodyParser from 'body-parser';
+
 import router from './config/bullBoardConfig';
 import sampleQueueProducer from './producers/sampleQueueProducer';
 import serverConfig from './config/serverConfig';
 import sampleWorker from './workers/sampleWorker';
+import apiRouter from './routes/index';
 const app: Express = express();
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
+
 app.use('/queue/ui', router);
-app.use('/api', require('./routes/index'));
+app.use('/api', apiRouter);
 app.listen(serverConfig.PORT, () => {
   console.log(`Server is running on port ${serverConfig.PORT}`);
   sampleQueueProducer(
