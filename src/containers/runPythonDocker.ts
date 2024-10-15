@@ -1,7 +1,3 @@
-//Docker Container for running Python code
-// import Docker from 'dockerode';
-
-// import { TestCases } from '../types/testCases';
 import createContainer from './containerFactory';
 import { PYTHON_IMAGE } from '../utils/constants';
 import { decodeDockerStream } from './dockerHelper';
@@ -17,6 +13,7 @@ const runPython = async (code: string, inputTestCase: string) => {
     `'`,
     "'\\''"
   )}' > test.py && echo '${inputTestCase}' | python3 test.py`;
+
   const pythonDockerContainer = await createContainer(PYTHON_IMAGE, [
     '/bin/sh',
     '-c',

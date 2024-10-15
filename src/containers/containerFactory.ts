@@ -1,6 +1,7 @@
 import Docker from 'dockerode';
 const createContainer = async (imageName: string, cmdExecutable: string[]) => {
   const docker = new Docker();
+
   const container = await docker.createContainer({
     Image: imageName, // image to use
     Cmd: cmdExecutable, // command to run in the container
