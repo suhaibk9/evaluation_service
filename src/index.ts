@@ -37,6 +37,12 @@ app.listen(serverConfig.PORT, () => {
     2
   );
   sampleWorker('sampleQueue');
-  const code = `print('Hello World')`;
-  runPython(code);
+  const code = `
+# Simple greeting loop
+n = int(input("How many times do you want to be greeted? "))
+for i in range(n):
+    print("Hello, World!", i)
+`;
+
+  runPython(code, '10');
 });
