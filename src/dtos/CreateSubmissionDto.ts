@@ -1,6 +1,4 @@
 import { z } from 'zod';
-
-
 //This is type create from the zod schema
 export type CreateSubmissionDto = z.infer<typeof createSubmissionZodSchema>;
 //This is the zod schema
