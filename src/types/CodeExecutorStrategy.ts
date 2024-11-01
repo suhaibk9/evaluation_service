@@ -1,8 +1,8 @@
 export default interface CodeExecutorStrategy {
   execute(
     code: string,
-    inputTestCase: string
-    // outputTestCase: string
+    inputTestCase: string,
+    outputTestCas: string
   ): Promise<ExecutionResponse>;
 }
 

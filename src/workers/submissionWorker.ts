@@ -7,7 +7,7 @@ const SubmissionWorker = (queueName: string) => {
   return new Worker(
     queueName,
     async (job: Job) => {
-      if (job.name === 'SubmissionJob') {
+      if (job.name === 'submission') {
         console.log('Reached Worker');
         const sampleJobInstance = new SubmissionJob(job.data);
         try {

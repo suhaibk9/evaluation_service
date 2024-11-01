@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import createContainer from './containerFactory';
 import { JAVA_IMAGE } from '../utils/constants';
 import { decodeDockerStream } from './dockerHelper';
@@ -9,8 +10,10 @@ import CodeExecutorStrategy, {
 class JavaExecutor implements CodeExecutorStrategy {
   async execute(
     code: string,
-    inputTestCase: string
+    inputTestCase: string,
+    outputTestCase:string
   ): Promise<ExecutionResponse> {
+    console.log('OP', outputTestCase);
     await pullImage(JAVA_IMAGE);
     const rawBuffer: Buffer[] = [];
     const runCommand = `echo '${code.replace(

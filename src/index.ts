@@ -11,7 +11,7 @@ import apiRouter from './routes/index';
 // import runPython from './containers/runPythonDocker';
 // import runJava from './containers/runJavaDocker';
 // import runCpp from './containers/runCPPDocker';
-import submissionQueueProducer from './producers/submissionQueueProducer';
+// import submissionQueueProducer from './producers/submissionQueueProducer';
 const app: Express = express();
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
@@ -58,27 +58,26 @@ app.listen(serverConfig.PORT, () => {
   // `;
 
   //   runJava(code, '');
-  const code = `#include <iostream>
+  //   const code = `#include <iostream>
 
-int main() {
-    // Loop to print "Hello, World!" 5 times
-    int n;std::cin>>n;
-    for (int i = 0; i < n; i++) {
-        std::cout << i << std::endl;
-    }
+  // int main() {
+  //     // Loop to print "Hello, World!" 5 times
+  //     int n;std::cin>>n;
+  //     for (int i = 0; i < n; i++) {
+  //         std::cout << i << std::endl;
+  //     }
 
-    return 0;
-}
-`;
-  submissionQueueProducer(
-    'SubmissionJob',
-    {
-      language: 'cpp',
-      code,
-      inputCase: '10',
-    },
-    100
-  );
+  //     return 0;
+  // }
+  // `;
+  //   submissionQueueProducer(
+  //     'SubmissionJob',
+  //     {
+  //       language: 'cpp',
+  //       code,
+  //       inputCase: '10',
+  //     },
+  //     100
+  //   );
   SubmissionWorker('submissionQueue');
-  
 });

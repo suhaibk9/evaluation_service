@@ -1,4 +1,5 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
+/* eslint-disable @typescript-eslint/no-unused-vars */
 import createContainer from './containerFactory';
 import { PYTHON_IMAGE } from '../utils/constants';
 import { decodeDockerStream } from './dockerHelper';
@@ -10,8 +11,10 @@ import CodeExecutorStrategy, {
 class PythonExecutor implements CodeExecutorStrategy {
   async execute(
     code: string,
-    inputTestCase: string
+    inputTestCase: string,
+    outputTestCase: string
   ): Promise<ExecutionResponse> {
+    console.log("OP",outputTestCase);
     await pullImage(PYTHON_IMAGE);
     const rawBuffer: Buffer[] = [];
     const runCommand = `echo '${code.replace(
