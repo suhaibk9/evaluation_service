@@ -2,7 +2,8 @@
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import createContainer from './containerFactory';
 import { PYTHON_IMAGE } from '../utils/constants';
-import { decodeDockerStream } from './dockerHelper';
+// import { decodeDockerStream } from './dockerHelper';
+import { fetchDecodedStream } from './dockerHelper';
 import pullImage from './pullImage';
 import CodeExecutorStrategy, {
   ExecutionResponse,
@@ -14,7 +15,7 @@ class PythonExecutor implements CodeExecutorStrategy {
     inputTestCase: string,
     outputTestCase: string
   ): Promise<ExecutionResponse> {
-    console.log("OP",outputTestCase);
+    console.log('OP', outputTestCase);
     await pullImage(PYTHON_IMAGE);
     const rawBuffer: Buffer[] = [];
     const runCommand = `echo '${code.replace(
@@ -42,34 +43,32 @@ class PythonExecutor implements CodeExecutorStrategy {
     });
 
     try {
-      const codeResponse: ExecutionResponse = await this.fetchDecodedStream(
+      const codeResponse: ExecutionResponse = await fetchDecodedStream(
         loggerStream,
         rawBuffer
       );
-      //Done with the stream now remove the container.
-      await pythonDockerContainer.remove();
-      return codeResponse;
-    } catch (e) {
-      console.log(e);
+
+      console.log('Final Code Response', codeResponse);
+      if (codeResponse.output.trim() === outputTestCase.trim()) {
+        return {
+          output: codeResponse.output,
+          status: 'Success',
+        }; //Success
+      } else {
+        return {
+          output: codeResponse.output,
+          status: 'WA',
+        }; //Wrong Answer
+      }
+    } catch (e: any) {
+      if (e.status === 'TLE') {
+        await pythonDockerContainer.kill();
+        return { output: 'Time limit exceeded', status: 'TLE' };
+      }
+      return { output: 'Error in executing Python code', status: 'error' };
+    } finally {
+      pythonDockerContainer.remove();
     }
-    return { output: 'Error in executing Python code', status: 'error' };
-  }
-  fetchDecodedStream(
-    loggerStream: NodeJS.ReadableStream,
-    rawBuffer: Buffer[]
-  ): Promise<ExecutionResponse> {
-    return new Promise((resolve, reject) => {
-      loggerStream.on('end', () => {
-        console.log('Python code execution completed');
-        const completeBuffer = Buffer.concat(rawBuffer);
-        const decodedString = decodeDockerStream(completeBuffer);
-        console.log(decodedString.stdout);
-        if (decodedString.stderr) {
-          reject({ output: decodedString.stderr, status: 'error' });
-        }
-        resolve({ output: decodedString.stdout, status: 'success' });
-      });
-    });
   }
 }
 

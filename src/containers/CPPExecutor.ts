@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
 import createContainer from './containerFactory';
 import { CPP_IMAGE } from '../utils/constants';
-import { decodeDockerStream } from './dockerHelper';
+// import { decodeDockerStream } from './dockerHelper';
+import { fetchDecodedStream } from './dockerHelper';
 import pullImage from './pullImage';
 import CodeExecutorStrategy, {
   ExecutionResponse,
@@ -44,38 +46,32 @@ class CppExecutor implements CodeExecutorStrategy {
     });
 
     try {
-      const codeResponse: string = await this.fetchDecodedStream(
+      const codeResponse: ExecutionResponse = await fetchDecodedStream(
         loggerStream,
         rawBuffer
       );
-      console.log('codeResponse', codeResponse);
-      return { output: codeResponse, status: 'success' };
-    } catch (e) {
-      console.log(e);
+
+      console.log('Final Code Response', codeResponse);
+      if (codeResponse.output.trim() === outputTestCase.trim()) {
+        return {
+          output: codeResponse.output,
+          status: 'Success',
+        }; //Success
+      } else {
+        return {
+          output: codeResponse.output,
+          status: 'WA',
+        }; //Wrong Answer
+      }
+    } catch (e: any) {
+      if (e.status === 'TLE') {
+        await cppDockerContainer.kill();
+        return { output: 'Time limit exceeded', status: 'TLE' };
+      }
       return { output: 'Error in executing C++ code', status: 'error' };
     } finally {
-      // Done with the stream, now remove the container.
-      await cppDockerContainer.remove();
+      cppDockerContainer.remove();
     }
-  }
-
-  fetchDecodedStream(
-    loggerStream: NodeJS.ReadableStream,
-    rawBuffer: Buffer[]
-  ): Promise<string> {
-    return new Promise((resolve, reject) => {
-      loggerStream.on('end', () => {
-        console.log('C++ code execution completed');
-        const completeBuffer = Buffer.concat(rawBuffer);
-        const decodedString = decodeDockerStream(completeBuffer);
-        console.log(decodedString.stdout);
-        if (decodedString.stderr) {
-          reject(decodedString.stderr);
-        } else {
-          resolve(decodedString.stdout);
-        }
-      });
-    });
   }
 }
 

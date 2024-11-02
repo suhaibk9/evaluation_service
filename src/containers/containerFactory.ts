@@ -9,6 +9,10 @@ const createContainer = async (imageName: string, cmdExecutable: string[]) => {
     AttachStdout: true, // to enable output stream
     AttachStderr: true, // to enable error stream
     OpenStdin: true, // to keep stdin open even if not attached i.e. to keep input stream open even if not attached
+    HostConfig: {
+      // 1024 * 1024 * 1024, // 1GB
+      Memory: 1024 * 1024 * 1024, // 1GB
+    },
   });
   return container;
 };

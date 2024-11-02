@@ -1,5 +1,6 @@
 import DockerStreamOutput from '../types/dockerStreamOutput';
 import { DOCKER_STREAM_HEADER_SIZE } from '../utils/constants';
+import { ExecutionResponse } from '../types/CodeExecutorStrategy';
 const decodeDockerStream = (buffer: Buffer): DockerStreamOutput => {
   //Offset to keep track of the current position in the buffer
   let offset = 0;
@@ -24,8 +25,29 @@ const decodeDockerStream = (buffer: Buffer): DockerStreamOutput => {
     }
     //Increment the offset to move to the next chunk
     offset += chunkLength;
-
   }
-    return output;
+  return output;
 };
-export { decodeDockerStream };
+
+function fetchDecodedStream(
+  loggerStream: NodeJS.ReadableStream,
+  rawBuffer: Buffer[]
+): Promise<ExecutionResponse> {
+  return new Promise((resolve, reject) => {
+    const timeout = setTimeout(() => {
+      reject({ output: 'Time limit exceeded', status: 'TLE' });
+    }, 3000);
+    loggerStream.on('end', () => {
+      clearTimeout(timeout);
+      const completeBuffer = Buffer.concat(rawBuffer);
+      const decodedString = decodeDockerStream(completeBuffer);
+      console.log(decodedString.stdout);
+      if (decodedString.stderr) {
+        reject({ output: decodedString.stderr, status: 'error' });
+      } else {
+        resolve({ output: decodedString.stdout, status: 'success' });
+      }
+    });
+  });
+}
+export { decodeDockerStream, fetchDecodedStream };

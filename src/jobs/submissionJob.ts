@@ -5,21 +5,30 @@ import { IJob } from '../types/bullMQJobDefinition';
 import createExecutor from '../utils/ExecutorFactory';
 class SubmissionJob implements IJob {
   name: string;
-  payload: submissionPayload; 
+  payload: submissionPayload;
   constructor(payload: submissionPayload) {
     this.name = this.constructor.name;
     this.payload = payload;
   }
   handle(job?: Job): void {
     if (job) {
-
-      console.log("Full Payload",this.payload);
+      console.log('Full Payload', this.payload);
       const language = this.payload.language;
       const code = this.payload.code;
-      const inputCase = this.payload.inputCase;
-      const outputCase = this.payload.outputCase;
+      // const testCases = this.payload.testCases;
+      // const inputCase = this.payload.inputCase;
+      // const outputCase = this.payload.outputCase;
       const strategy = createExecutor(language);
-      if (strategy !== null) strategy.execute(code, inputCase, outputCase);
+      if (strategy !== null) {
+        const results = this.payload.testCases.map(
+          async ({ input, output }) => {
+            const result = await strategy.execute(code, input, output);
+            console.log('Test Case Result', result);
+            return result;
+          }
+        );
+        console.log('All Results', results);
+      }
     }
   }
   failed(job?: Job) {

@@ -1,7 +1,9 @@
+/* eslint-disable @typescript-eslint/no-explicit-any */
 /* eslint-disable @typescript-eslint/no-unused-vars */
+
 import createContainer from './containerFactory';
 import { JAVA_IMAGE } from '../utils/constants';
-import { decodeDockerStream } from './dockerHelper';
+import { fetchDecodedStream } from './dockerHelper';
 import pullImage from './pullImage';
 import CodeExecutorStrategy, {
   ExecutionResponse,
@@ -11,7 +13,7 @@ class JavaExecutor implements CodeExecutorStrategy {
   async execute(
     code: string,
     inputTestCase: string,
-    outputTestCase:string
+    outputTestCase: string
   ): Promise<ExecutionResponse> {
     console.log('OP', outputTestCase);
     await pullImage(JAVA_IMAGE);
@@ -43,35 +45,32 @@ class JavaExecutor implements CodeExecutorStrategy {
     });
 
     try {
-      const codeResponse: ExecutionResponse = await this.fetchDecodedStream(
+      const codeResponse: ExecutionResponse = await fetchDecodedStream(
         loggerStream,
         rawBuffer
       );
-      // Done with the stream, now remove the container.
-      await javaDockerContainer.remove();
-      return codeResponse;
-    } catch (e) {
-      console.log(e);
+      console.log('Final Code Response', codeResponse);
+      if (codeResponse.output.trim() === outputTestCase.trim()) {
+        return {
+          output: codeResponse.output,
+          status: 'Success',
+        };
+      } else {
+        return {
+          output: codeResponse.output,
+          status: 'WA',
+        }; //Wrong Answer
+      }
+    } catch (e: any) {
+      if (e.status === 'TLE') {
+        await javaDockerContainer.kill();
+        return { output: 'Time limit exceeded', status: 'TLE' };
+      }
+      return { output: 'Error in executing Java code', status: 'error' };
+    } finally {
+      //Done with the stream now remove the container.
+      javaDockerContainer.remove();
     }
-    return { output: 'Error in executing Java code', status: 'error' };
-  }
-
-  fetchDecodedStream(
-    loggerStream: NodeJS.ReadableStream,
-    rawBuffer: Buffer[]
-  ): Promise<ExecutionResponse> {
-    return new Promise((resolve, reject) => {
-      loggerStream.on('end', () => {
-        console.log('Java code execution completed');
-        const completeBuffer = Buffer.concat(rawBuffer);
-        const decodedString = decodeDockerStream(completeBuffer);
-        console.log(decodedString.stdout);
-        if (decodedString.stderr) {
-          reject({ output: decodedString.stderr, status: 'error' });
-        }
-        resolve({ output: decodedString.stdout, status: 'success' });
-      });
-    });
   }
 }
 
