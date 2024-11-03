@@ -8,7 +8,7 @@ import pullImage from './pullImage';
 import CodeExecutorStrategy, {
   ExecutionResponse,
 } from '../types/CodeExecutorStrategy';
-
+import evaluationQueueProducer from '../producers/evaluationQueueProducer';
 class CppExecutor implements CodeExecutorStrategy {
   async execute(
     code: string,
@@ -50,7 +50,7 @@ class CppExecutor implements CodeExecutorStrategy {
         loggerStream,
         rawBuffer
       );
-
+      evaluationQueueProducer({ codeResponse });
       console.log('Final Code Response', codeResponse);
       if (codeResponse.output.trim() === outputTestCase.trim()) {
         return {
@@ -65,6 +65,7 @@ class CppExecutor implements CodeExecutorStrategy {
       }
     } catch (e: any) {
       if (e.status === 'TLE') {
+        
         await cppDockerContainer.kill();
         return { output: 'Time limit exceeded', status: 'TLE' };
       }

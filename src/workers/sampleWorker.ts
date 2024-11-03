@@ -7,7 +7,7 @@ const submissionWorker = (queueName: string) => {
   return new Worker(
     queueName,
     async (job: Job) => {
-      if (job.name === 'SubmissionJob') {
+      if (job.name === 'submission') {
         const submissionJobInstance = new SubmissionJob(job.data);
         try {
           await submissionJobInstance.handle(job); // Await the handle method

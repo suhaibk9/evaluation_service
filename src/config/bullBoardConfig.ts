@@ -1,6 +1,14 @@
-import { createBullBoard } from 'bull-board';
-import { BullMQAdapter } from 'bull-board/bullMQAdapter';
+// /* eslint-disable import/order */
+// /* eslint-disable @typescript-eslint/no-unused-vars */
+// import { createBullBoard } from '@bull-board/api';
+// import { BullMQAdapter } from '@bull-board/api/bullMQAdapter';
+// import { ExpressAdapter } from '@bull-board/express';
+// import evaluationQueue from '../queues/evaluationQueue';
+// import submissionQueue from '../queues/submissionQueue';
+// console.log('BullBoard UI route set up at /queue/ui');
+// const serverAdapter = new ExpressAdapter();
+// serverAdapter.setBasePath('/ui');
 
-import sampleQueue from '../queues/sampleQueue';
-const { router } = createBullBoard([new BullMQAdapter(sampleQueue)]);
-export default router;
+// const queues = [new BullMQAdapter(evaluationQueue), new BullMQAdapter(submissionQueue)];
+// createBullBoard({ queues: queues, serverAdapter: serverAdapter });
+// export default serverAdapter;

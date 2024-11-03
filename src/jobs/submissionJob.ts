@@ -1,8 +1,13 @@
+/* eslint-disable @typescript-eslint/no-unused-vars */
+/* eslint-disable @typescript-eslint/no-explicit-any */
 import { Job } from 'bullmq';
 
 import { submissionPayload } from '../types/submissionPayload';
 import { IJob } from '../types/bullMQJobDefinition';
 import createExecutor from '../utils/ExecutorFactory';
+import evaluationQueueProducer from '../producers/evaluationQueueProducer';
+// import { ExecutionResponse } from '../types/CodeExecutorStrategy';
+
 class SubmissionJob implements IJob {
   name: string;
   payload: submissionPayload;
@@ -13,11 +18,9 @@ class SubmissionJob implements IJob {
   handle(job?: Job): void {
     if (job) {
       console.log('Full Payload', this.payload);
+      evaluationQueueProducer(this.payload);
       const language = this.payload.language;
       const code = this.payload.code;
-      // const testCases = this.payload.testCases;
-      // const inputCase = this.payload.inputCase;
-      // const outputCase = this.payload.outputCase;
       const strategy = createExecutor(language);
       if (strategy !== null) {
         const results = this.payload.testCases.map(
@@ -27,7 +30,13 @@ class SubmissionJob implements IJob {
             return result;
           }
         );
-        console.log('All Results', results);
+        const finalStatus = finalResults(results);
+        evaluationQueueProducer({
+          response: finalStatus,
+          problemId: this.payload.problemId,
+          userId: this.payload.userId,
+          submissionId: this.payload.submissionId,
+        });
       }
     }
   }
@@ -43,3 +52,21 @@ export default SubmissionJob;
     data: The data of the job.
 
  */
+
+const finalResults = (results: any) => {
+  let finalStatus = 'Success';
+
+  for (const result of results) {
+    console.log('Result Value', result);
+    if (result.status === 'TLE') {
+      finalStatus = 'TLE';
+      break;
+    } else if (result.status === 'error') {
+      finalStatus = 'RE';
+      break;
+    } else if (result.status === 'WA') {
+      finalStatus = 'WA';
+    }
+  }
+  return finalStatus;
+};
